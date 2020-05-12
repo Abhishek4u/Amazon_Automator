@@ -78,6 +78,7 @@ async function interface() {
         tab.waitForNavigation({ waitUntil: "networkidle2" })]);
 
         if (tabToBeSelected == 4) {
+            priceBracket+=1; //added extra image
             let laptopsURL = `https://www.amazon.in/s/ref=mega_elec_s23_2_1_1_1?rh=i%3Acomputers%2Cn%3A1375424031&ie=UTF8&bbn=976392031`
             await Promise.all([tab.goto(laptopsURL),
             tab.waitForNavigation({ waitUntil: "networkidle2" })]);

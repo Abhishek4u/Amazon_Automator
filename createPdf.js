@@ -1,13 +1,13 @@
 let puppeteer = require("puppeteer");
 module.exports.pdfCreater = (async function () {
 
-  /** Launch a headleass browser */
+  /** Launch a headless browser  because generate pdf function works only in headless mode*/
   let browser = await puppeteer.launch();
 
   let page = await browser.newPage();
 
   await page.goto("C:/Users/Anshul/Desktop/Amazon_Puppeteer/build.html", { waitUntil: 'networkidle0' });
-  /* 3- Take a snapshot of the PDF */
+
   await page.pdf({
     path: 'generated.pdf',
     format: 'A4',
