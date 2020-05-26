@@ -7,7 +7,7 @@ let CFonts = require('cfonts');
 let { htmlCreater } = require("./createTable");
 let { pdfCreater } = require("./createPdf");
 
-let priceBracket;
+let priceBracket, idx;
 let tabToBeSelected;
 let allElectronics = [];
 
@@ -25,10 +25,17 @@ async function interface() {
 4. 15k TO 20k
 5. 20k TO 25k
 6. Above 25k `, { font: 'simple', colors: ['#1be02b'], gradient: ['red', 'green'] });
-        priceBracket = prompt();
-        tabToBeSelected = 0;
+        idx = prompt();
+        tabToBeSelected = "Mobiles";
+        if (idx == 1) priceBracket = "Below5k";
+        else if (idx == 2) priceBracket = "Sub10k";
+        else if (idx == 3) priceBracket = "10-15k";
+        else if (idx == 4) priceBracket = "15-20k";
+        else if (idx == 5) priceBracket = "20-25";
+        else if (idx == 6) priceBracket = "25kAbove";
+        else console.log("Wrong Input");
 
-    } else if(typeOfElectronics == 2) {
+    } else if (typeOfElectronics == 2) {
         CFonts.say(`Enter the Price Range
 1. Under 20k
 2. 20k TO 30k
@@ -36,16 +43,22 @@ async function interface() {
 4. 40k TO 50k
 5. 50k TO 70k
 6. Above 70k `, { font: 'simple', colors: ['#1be02b'], gradient: ['red', 'green'] });
-        priceBracket = prompt();
-        tabToBeSelected = 4;
+        idx = prompt();
+        tabToBeSelected = "Computers";
+        if (idx == 1) priceBracket = "under20k";
+        else if (idx == 2) priceBracket = "20-30";
+        else if (idx == 3) priceBracket = "30-40k";
+        else if (idx == 4) priceBracket = "40 -50k";
+        else if (idx == 5) priceBracket = "50 - 60 k";
+        else if (idx == 6) priceBracket = "70k";
+        else console.log("Wrong Input");
     }
-    else{
+    else {
         console.log("Wrong Input");
         throw new Error("Wrong Input Given!");
     }
-    priceBracket = parseInt(priceBracket) + 15;
 
-    CFonts.say(`There you go `,{font:'block',colors:['#34eb93','#eb345f']})
+    CFonts.say(`There you go `, { font: 'block', colors: ['#34eb93', '#eb345f'] })
 
 }
 
@@ -70,15 +83,27 @@ async function interface() {
 
         let nextTab = await tab.$$("#nav-xshop a");
 
+        let selectedTab;
+        for (let i = 0; i < nextTab.length; i++) {
+            selectedTab = await tab.evaluate(function (elt, selection, idx) {
+
+                if (elt.innerText == selection) return idx;
+                else return undefined;
+
+            }, nextTab[i], tabToBeSelected, i);
+
+            if (selectedTab != undefined)
+                break;
+        }
+
         let hrefmain = await tab.evaluate(function (elem) {
             return "https://www.amazon.in/" + elem.getAttribute("href");
-        }, nextTab[tabToBeSelected]);
+        }, nextTab[selectedTab]);
 
         await Promise.all([tab.goto(hrefmain),
         tab.waitForNavigation({ waitUntil: "networkidle2" })]);
 
-        if (tabToBeSelected == 4) {
-            priceBracket+=1; //added extra image
+        if (tabToBeSelected == "Computers") {
             let laptopsURL = `https://www.amazon.in/s/ref=mega_elec_s23_2_1_1_1?rh=i%3Acomputers%2Cn%3A1375424031&ie=UTF8&bbn=976392031`
             await Promise.all([tab.goto(laptopsURL),
             tab.waitForNavigation({ waitUntil: "networkidle2" })]);
@@ -86,24 +111,22 @@ async function interface() {
 
         await tab.waitForSelector(".bxc-grid__image");
 
-        let priceBracketTab = await tab.$$(`.bxc-grid__image a`);
-
         //For scrolling into elements
         await tab.evaluate(async () => {
             for (let iframe of Array.from(document.querySelectorAll(`.bxc-grid__image a`))) {
-              iframe.scrollIntoView();
-              await new Promise((resolve) => { setTimeout(resolve, 250); });
+                iframe.scrollIntoView();
+                await new Promise((resolve) => { setTimeout(resolve, 250); });
             }
-          });
+        });
 
         //   old one scrolling method
         // await tab.$eval(`.bxc-grid__image a`,(el) => el.scrollIntoView({ behavior: 'smooth' }));
 
         let priceHref = await tab.evaluate(function (elt) {
-            return "https://www.amazon.in/" + elt.getAttribute("href");
-        }, priceBracketTab[priceBracket]);
+            return "https://www.amazon.in/" + document.querySelector('[aria-label="' + elt + '"]').getAttribute("href");
+        }, priceBracket);
 
-        // console.log(priceHref);
+        // await console.log(priceHref);
 
         await Promise.all([tab.goto(priceHref),
         tab.waitForNavigation({ waitUntil: "networkidle2" })]);
@@ -128,7 +151,7 @@ async function interface() {
 
         let allPagesWillBeServedPromise = [];
 
-        for (let i = 1; i <= length; i++) { 
+        for (let i = 1; i <= length; i++) {
 
             let pageSpecificUrl = globalURL.replace("page=2", `page=${i}`);
             pageSpecificUrl = pageSpecificUrl.replace("pg_2", `pg-${i}`)
@@ -149,11 +172,11 @@ async function interface() {
 
         await htmlCreater();
 
-        await tab.goto("C:/Users/Anshul/Desktop/Amazon_Puppeteer/build.html"); 
+        await tab.goto("C:/Users/Anshul/Desktop/Amazon_Puppeteer/build.html");
 
         await pdfCreater();
 
-        
+
 
         await tab.waitFor(15000);
 
@@ -186,10 +209,10 @@ async function handleSinglePage(newTab, link) {
         //For scrolling into elements
         await newTab.evaluate(async () => {
             for (let iframe of Array.from(document.querySelectorAll('.s-result-list div .celwidget'))) {
-              iframe.scrollIntoView();
-              await new Promise((resolve) => { setTimeout(resolve, 200); });
+                iframe.scrollIntoView();
+                await new Promise((resolve) => { setTimeout(resolve, 200); });
             }
-          });
+        });
 
         for (let i = 0; i < listRow.length; i++) {
 
@@ -229,7 +252,7 @@ async function handleSinglePage(newTab, link) {
                 "DiscountedPrice": discountedPrice,
                 "OriginalPrice": originalPrice
             }
-            
+
             await allElectronics.push(obj);
         }
         await newTab.close();
